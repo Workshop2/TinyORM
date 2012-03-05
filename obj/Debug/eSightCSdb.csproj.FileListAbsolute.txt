@@ -1,0 +1,12 @@
+c:\Dev\eSight\DEV\eSightInstaller\eSightCSdb\bin\Debug\eSightCSdb.dll
+c:\Dev\eSight\DEV\eSightInstaller\eSightCSdb\bin\Debug\eSightCSdb.pdb
+c:\Dev\eSight\DEV\eSightInstaller\eSightCSdb\bin\Debug\Microsoft.ApplicationBlocks.Data.dll
+c:\Dev\eSight\DEV\eSightInstaller\eSightCSdb\obj\Debug\ResolveAssemblyReference.cache
+c:\Dev\eSight\DEV\eSightInstaller\eSightCSdb\obj\Debug\eSightCSdb.dll
+c:\Dev\eSight\DEV\eSightInstaller\eSightCSdb\obj\Debug\eSightCSdb.pdb
+F:\My Documents\Visual Studio 2010\Projects\eSightCSdb\bin\Debug\eSightCSdb.dll
+F:\My Documents\Visual Studio 2010\Projects\eSightCSdb\bin\Debug\eSightCSdb.pdb
+F:\My Documents\Visual Studio 2010\Projects\eSightCSdb\obj\Debug\ResolveAssemblyReference.cache
+F:\My Documents\Visual Studio 2010\Projects\eSightCSdb\obj\Debug\eSightCSdb.dll
+F:\My Documents\Visual Studio 2010\Projects\eSightCSdb\obj\Debug\eSightCSdb.pdb
+F:\My Documents\Visual Studio 2010\Projects\eSightCSdb\bin\Debug\Microsoft.ApplicationBlocks.Data.dll
