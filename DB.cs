@@ -13,6 +13,7 @@ namespace TinyORM
         : IDisposable
     {
         private DbConnectionInfo DbInfo { get; set; }
+		private bool IsStartup { get; set; }
         public SqlConnection DbConnection { get; private set; }
         public TimeSpan CommandTimeout { get; set; }
 
@@ -20,8 +21,10 @@ namespace TinyORM
 
         public Db(DbConnectionInfo dbInfo)
         {
+			//This stops connection tests from retrying
+            IsStartup = true;
             DbInfo = dbInfo;
-            CommandTimeout = dbInfo.ConnectionTimemout;
+            CommandTimeout = DbInfo.ConnectionTimemout;
 
             if (DbInfo != null && DbInfo.HasEnoughInformation())
             {
@@ -31,11 +34,14 @@ namespace TinyORM
                 if (!connectionRes.Success)
                     throw connectionRes.AsException;
             }
+
+            //This stops connection tests from retrying
+            IsStartup = false;
         }
 
         #endregion
 
-        #region SQLAccess
+        #region SqlAccess
 
         private DbResultInfoRtn<T> ExecuteScalar<T>(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
@@ -44,7 +50,7 @@ namespace TinyORM
             DbResultInfoRtn<T> rtnResult;
 
             if (DbConnection == null)
-                return new DbResultInfoRtn<T>("eSightCSdb.DB Connection not initialized", null);
+                return new DbResultInfoRtn<T>("eSightCSDb.Db Connection not initialized", null);
             if (string.IsNullOrEmpty(commandText))
                 return new DbResultInfoRtn<T>("No command text found, unable to execute command", null);
 
@@ -67,7 +73,7 @@ namespace TinyORM
                 rtnObj = null;
             }
 
-            //Seperate catches as the casting in the next part may fail, but we want to return the error back in a DBResultInfoRtn
+            //Seperate catches as the casting in the next part may fail, but we want to return the error back in a DbResultInfoRtn
             try
             {
                 rtnObj = ProcessSqlValue<T>(rtnObj);
@@ -75,38 +81,34 @@ namespace TinyORM
             }
             catch (Exception e)
             {
-                rtnResult = string.IsNullOrEmpty(errorMsg) ? new DbResultInfoRtn<T>(e.Message, null) : new DbResultInfoRtn<T>(errorMsg, e.Message, null);
+                rtnResult = string.IsNullOrEmpty(errorMsg) ? 
+                                    new DbResultInfoRtn<T>(e.Message, null) : 
+                                    new DbResultInfoRtn<T>(errorMsg, e.Message, null);
             }
 
             return rtnResult;
         }
 
-        private object ExecuteScalarRegular(string commandText, List<SqlParameter> parameters,
-                                             SqlTransaction transaction)
+        private object ExecuteScalarRegular(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
             object rtnObj;
 
             if (transaction == null)
-                rtnObj = SqlHelper.ExecuteScalar(DbConnection, SqlCommandOrUsp(commandText), commandText,
-                                                 parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+                rtnObj = SqlHelper.ExecuteScalar(DbConnection, SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
             else
-                rtnObj = SqlHelper.ExecuteScalar(transaction, SqlCommandOrUsp(commandText), commandText,
-                                                 parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+                rtnObj = SqlHelper.ExecuteScalar(transaction, SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
 
             return rtnObj;
         }
 
-        private object ExecuteScalarDataset<T>(string commandText, List<SqlParameter> parameters,
-                                                SqlTransaction transaction)
+        private object ExecuteScalarDataset<T>(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
             object rtnObj;
 
             if (transaction == null)
-                rtnObj = SqlHelper.ExecuteDataset(DbConnection, SqlCommandOrUsp(commandText), commandText,
-                                                  parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+                rtnObj = SqlHelper.ExecuteDataset(DbConnection, SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
             else
-                rtnObj = SqlHelper.ExecuteDataset(transaction, SqlCommandOrUsp(commandText), commandText,
-                                                  parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+                rtnObj = SqlHelper.ExecuteDataset(transaction, SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
 
             if (DbUtils.IsSubclassOfRawGeneric(typeof(DataSet), typeof(T)))
                 return rtnObj;
@@ -142,15 +144,15 @@ namespace TinyORM
 
             if (dt.Rows.Count > 0 && dt.Columns.Count > 0)
             {
-                var method = GetType().GetMethod("ConvertDataRowToObject",
-                                                        BindingFlags.NonPublic | BindingFlags.Instance);
+                var method = GetType().GetMethod("ConvertDataRowToObject", BindingFlags.NonPublic | BindingFlags.Instance);
                 var t = method.MakeGenericMethod(new[] { objType });
 
                 for (var i = 0; i < dt.Rows.Count; i++)
                 {
-                    lst.Add(objType.IsValueType
-                                ? ProcessSqlValue(dt.Rows[i][0])
-                                : t.Invoke(this, new object[] { dt.Columns, dt.Rows[i] }));
+                    if (IsValueType(objType))
+                        lst.Add(ProcessSqlValue(dt.Rows[i][0]));
+                    else
+                        lst.Add(t.Invoke(this, new object[] { dt.Columns, dt.Rows[i] }));
                 }
             }
 
@@ -167,18 +169,33 @@ namespace TinyORM
 
         private static bool IsGenericACollection<T>()
         {
-            return DbUtils.IsSubclassOfRawGeneric(typeof(List<>), typeof(T)) ||
-                   DbUtils.IsSubclassOfRawGeneric(typeof(DataTable), typeof(T)) ||
-                   DbUtils.IsSubclassOfRawGeneric(typeof(DataSet), typeof(T)) || !IsValueType<T>();
+            if (IsValueType<T>())
+                return false;
+
+            //Is it a List?
+            if (DbUtils.IsSubclassOfRawGeneric(typeof(List<>), typeof(T)))
+                return true;
+
+            //Is it a Datatable?
+            if (DbUtils.IsSubclassOfRawGeneric(typeof(DataTable), typeof(T)))
+                return true;
+
+            //Is it a Dataset?
+            return DbUtils.IsSubclassOfRawGeneric(typeof(DataSet), typeof(T));
         }
 
         private static bool IsValueType<T>()
         {
-            if (typeof(T).IsValueType)
+            return IsValueType(typeof(T));
+        }
+
+        private static bool IsValueType(Type T)
+        {
+            if (T.IsValueType)
                 return true;
-            if (typeof(T) == typeof(string))
+            if (T == typeof(string))
                 return true;
-            if (typeof(T) == typeof(String))
+            if (T == typeof(String))
                 return true;
 
             return false;
@@ -323,7 +340,7 @@ namespace TinyORM
 
         /// <summary>
         /// This function ensures the current connection is connected and alive.
-        /// If there is a SQLException it will attempt to reconnect once, if there are
+        /// If there is a SqlException it will attempt to reconnect once, if there are
         /// still errors then the function will return Success == false
         /// </summary>
         /// <returns></returns>
@@ -334,13 +351,18 @@ namespace TinyORM
             //Attempt to connect twice (if the connection is severed, try connecting once more)
             for (var i = 0; i < 2; i++)
             {
+                //If the application is testing the connection for the first time
+                //dont try the connection more than once
+                if (IsStartup && i > 0)
+                    break;
+
                 try
                 {
                     if (DbConnection.State != ConnectionState.Open)
                         DbConnection.Open();
 
-                    //This will cause the DB to execute SQL and test the connection
-                    SqlHelper.ExecuteScalar(DbConnection, CommandType.Text, "SELECT DB_NAME() AS DataBaseName");
+                    //This will cause the Db to execute Sql and test the connection
+                    SqlHelper.ExecuteScalar(DbConnection, CommandType.Text, "SELECT Db_NAME() AS DataBaseName");
                     errorMsg = string.Empty;
                     break;
                 }

@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyORM", "TinyORM.csproj", "{09A3BFED-4A4B-4CF6-A50C-B6684DD2F4BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyORM.Tests", "..\TinyORM.Tests\TinyORM.Tests.csproj", "{EEA8D380-A8E7-4CBF-9537-2C49A1BC0735}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{09A3BFED-4A4B-4CF6-A50C-B6684DD2F4BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09A3BFED-4A4B-4CF6-A50C-B6684DD2F4BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09A3BFED-4A4B-4CF6-A50C-B6684DD2F4BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEA8D380-A8E7-4CBF-9537-2C49A1BC0735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEA8D380-A8E7-4CBF-9537-2C49A1BC0735}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEA8D380-A8E7-4CBF-9537-2C49A1BC0735}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEA8D380-A8E7-4CBF-9537-2C49A1BC0735}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
