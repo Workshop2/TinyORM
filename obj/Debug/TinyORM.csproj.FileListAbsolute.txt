@@ -10,3 +10,9 @@ F:\My Documents\Visual Studio 2010\Projects\TinyORM\bin\Debug\Microsoft.Applicat
 F:\My Documents\Visual Studio 2010\Projects\TinyORM\obj\Debug\ResolveAssemblyReference.cache
 F:\My Documents\Visual Studio 2010\Projects\TinyORM\obj\Debug\TinyORM.dll
 F:\My Documents\Visual Studio 2010\Projects\TinyORM\obj\Debug\TinyORM.pdb
+F:\My Documents\Git\TinyORM\obj\Debug\ResolveAssemblyReference.cache
+F:\My Documents\Git\TinyORM\obj\Debug\TinyORM.dll
+F:\My Documents\Git\TinyORM\bin\Debug\TinyORM.dll
+F:\My Documents\Git\TinyORM\bin\Debug\TinyORM.pdb
+F:\My Documents\Git\TinyORM\bin\Debug\Microsoft.ApplicationBlocks.Data.dll
+F:\My Documents\Git\TinyORM\obj\Debug\TinyORM.pdb
