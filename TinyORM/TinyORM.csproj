@@ -48,13 +48,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DB.cs" />
-    <Compile Include="DBTempChange.cs" />
-    <Compile Include="DBConnectionInfo.cs" />
-    <Compile Include="DBListServers.cs" />
-    <Compile Include="DBMaintenance.cs" />
-    <Compile Include="DBResultInfo.cs" />
-    <Compile Include="DBUtils.cs" />
+    <Compile Include="Db.cs" />
+    <Compile Include="Maintenance\DbTempChange.cs" />
+    <Compile Include="DbConnectionInfo.cs" />
+    <Compile Include="Maintenance\DbListServers.cs" />
+    <Compile Include="Maintenance\DbMaintenance.cs" />
+    <Compile Include="DbResultInfo.cs" />
+    <Compile Include="Utils\DBUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -69,6 +69,7 @@
   <ItemGroup>
     <EmbeddedResource Include="SQLScripts\CreateDatabase.sql" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
