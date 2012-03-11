@@ -47,7 +47,7 @@ namespace TinyORM.Mapping
             if (dbValue.GetType() == typeof(DataTable))
             {
                 var dt = (DataTable)dbValue;
-                return dt.Rows.Count > 0 ? ConvertDataRowToObject<T>(dt.Columns, dt.Rows[0]) : default(T);
+                return dt.Rows.Count > 0 ? ConvertDataRowToObject<T>(dt.Columns, dt.Rows[0], typeof(T)) : default(T);
             }
 
             //If we are here, then we have a single object trying to be converted into another object.
@@ -95,11 +95,11 @@ namespace TinyORM.Mapping
             var generatedList = (IList)Activator.CreateInstance((typeof(List<>).MakeGenericType(objType)));
             var convertDataRowToObjectHandler = GetType().GetMethod("ConvertDataRowToObject", BindingFlags.NonPublic | BindingFlags.Instance);
             var convertDataRowToObjectMethod = convertDataRowToObjectHandler.MakeGenericMethod(new[] { objType });
-            
+
             if (dt.Rows.Count > 0 && dt.Columns.Count > 0)
             {
                 for (var i = 0; i < dt.Rows.Count; i++)
-                    generatedList.Add(convertDataRowToObjectMethod.Invoke(this, new object[] { dt.Columns, dt.Rows[i] }));
+                    generatedList.Add(convertDataRowToObjectMethod.Invoke(this, new object[] { dt.Columns, dt.Rows[i], objType }));
             }
 
             return (T)generatedList;
@@ -118,26 +118,25 @@ namespace TinyORM.Mapping
         #endregion
 
         #region MiscFunctions
-        private T ConvertDataRowToObject<T>(DataColumnCollection columnDefs, DataRow dr)
+        private T ConvertDataRowToObject<T>(DataColumnCollection columnDefs, DataRow dr, Type type)
         {
             if (columnDefs.Count < 1 || dr == null)
                 throw new Exception("Not enough information to process");
 
             if (DbUtils.IsValueType<T>())
             {
-                var column = InitialiseObject<T>(dr, columnDefs[0].ColumnName);
+                var column = ProcessSqlValue<T>(dr[columnDefs[0].ColumnName]);
                 return column == null ? default(T) : ConvertValueType<T>(column);
             }
 
-            var t = typeof(T); //TODO: Move this into parameter that gets passed in; for better speed?
             var newObject = (T)FormatterServices.GetUninitializedObject(typeof(T));
 
             for (var i = 0; i <= columnDefs.Count - 1; i++)
             {
-                t.InvokeMember(columnDefs[i].ColumnName,
+                type.InvokeMember(columnDefs[i].ColumnName,
                                BindingFlags.SetProperty, null,
                                newObject,
-                               new[] { InitialiseObject<T>(dr, columnDefs[i].ColumnName) });
+                               new[] { ProcessSqlValue<T>(dr[columnDefs[i].ColumnName]) });
             }
 
             return newObject;
@@ -148,12 +147,7 @@ namespace TinyORM.Mapping
             if (typeof(T) == typeof(string))
                 return (T)(object)value.ToString();
 
-            return (T) value;
-        }
-
-        private static object InitialiseObject<T>(DataRow dr, String columnName)
-        {
-            return ProcessSqlValue<T>(dr[columnName]);
+            return (T)value;
         }
 
         private static object ProcessSqlValue<T>(object value)
@@ -162,7 +156,7 @@ namespace TinyORM.Mapping
                 return null;
 
             //Dont bother converting if we are already ok :)
-            if(typeof(T) == value.GetType())
+            if (typeof(T) == value.GetType())
                 return value;
 
             if (typeof(T) == typeof(bool))

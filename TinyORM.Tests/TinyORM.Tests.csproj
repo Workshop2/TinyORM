@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Mapping\Common.cs" />
+    <Compile Include="Mapping\TinyMapperClassTests.cs" />
     <Compile Include="Mapping\TinyMapperValueTests.cs" />
     <Compile Include="Mapping\TinyMapperBoundariesTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

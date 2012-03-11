@@ -1,4 +1,7 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace TinyORM.Tests.Mapping
@@ -23,6 +26,8 @@ namespace TinyORM.Tests.Mapping
             rtnVal.Columns.Add("PropertyBool", typeof(bool));
             rtnVal.Columns.Add("PropertyLong", typeof(long));
             rtnVal.Columns.Add("PropertyString", typeof(string));
+            rtnVal.Columns.Add("PropertyDouble", typeof(double));
+            rtnVal.Columns.Add("PropertyFloat", typeof(float));
 
             for (var i = 1; i < rows + 1; i++)
             {
@@ -31,11 +36,56 @@ namespace TinyORM.Tests.Mapping
                 row[1] = i % 2;
                 row[2] = i;
                 row[3] = i.ToString(CultureInfo.InvariantCulture);
+                row[4] = i + 0.01;
+                row[5] = i + 0.01;
 
                 rtnVal.Rows.Add(row);
             }
 
             return rtnVal;
+        }
+
+        #region ObjectGeneration
+        public class DummyClass
+        {
+            public int PropertyInt { get; set; }
+            public bool PropertyBool { get; set; }
+            public long PropertyLong { get; set; }
+            public string PropertyString { get; set; }
+            public double PropertyDouble { get; set; }
+            public float PropertyFloat { get; set; }
+        }
+
+        public static List<DummyClass> GenerateExpectedDummyObject(int rows)
+        {
+            var rtnVal = new List<DummyClass>();
+
+            for (var i = 1; i < rows + 1; i++)
+            {
+                var row = new DummyClass
+                {
+                    PropertyInt = i,
+                    PropertyBool = (i%2) == 1,
+                    PropertyLong = i,
+                    PropertyString = i.ToString(CultureInfo.InvariantCulture),
+                    PropertyFloat = i + 0.01F,
+                    PropertyDouble = i + 0.01D
+                };
+
+                rtnVal.Add(row);
+            }
+
+            return rtnVal;
+        }
+        #endregion
+
+        public static void PrintTime(DateTime timeStamp, DateTime now)
+        {
+            var different = now - timeStamp;
+            Debug.WriteLine("Total Milliseconds:" + different.TotalMilliseconds);
+            Debug.WriteLine("Total Seconds:" + different.TotalSeconds);
+            Debug.WriteLine("Total Minutes:" + different.TotalMinutes);
+            Debug.WriteLine("");
         }
     }
 }
