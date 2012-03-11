@@ -36,7 +36,7 @@ namespace TinyORM.Mapping
         /// <typeparam name="T"></typeparam>
         /// <param name="dbValue"></param>
         /// <returns></returns>
-        private static T MapSingleObject<T>(object dbValue)
+        private T MapSingleObject<T>(object dbValue)
         {
             //Here, we assume we want to try and use reflection to setup a new object with the parameters set
             //from the 1st datatable. Assumed to be a single object, otherwise it would be encapsulated in a list
@@ -95,16 +95,11 @@ namespace TinyORM.Mapping
             var generatedList = (IList)Activator.CreateInstance((typeof(List<>).MakeGenericType(objType)));
             var convertDataRowToObjectHandler = GetType().GetMethod("ConvertDataRowToObject", BindingFlags.NonPublic | BindingFlags.Instance);
             var convertDataRowToObjectMethod = convertDataRowToObjectHandler.MakeGenericMethod(new[] { objType });
-            var isValueType = DbUtils.IsValueType(objType);
-
+            
             if (dt.Rows.Count > 0 && dt.Columns.Count > 0)
             {
                 for (var i = 0; i < dt.Rows.Count; i++)
-                {
-                    generatedList.Add(isValueType
-                                          ? DbUtils.ProcessSqlValue(dt.Rows[i][0])
-                                          : convertDataRowToObjectMethod.Invoke(this, new object[] { dt.Columns, dt.Rows[i] }));
-                }
+                    generatedList.Add(convertDataRowToObjectMethod.Invoke(this, new object[] { dt.Columns, dt.Rows[i] }));
             }
 
             return (T)generatedList;
@@ -123,7 +118,7 @@ namespace TinyORM.Mapping
         #endregion
 
         #region MiscFunctions
-        private static T ConvertDataRowToObject<T>(DataColumnCollection columnDefs, DataRow dr)
+        private T ConvertDataRowToObject<T>(DataColumnCollection columnDefs, DataRow dr)
         {
             if (columnDefs.Count < 1 || dr == null)
                 throw new Exception("Not enough information to process");
@@ -131,25 +126,29 @@ namespace TinyORM.Mapping
             if (DbUtils.IsValueType<T>())
             {
                 var column = InitialiseObject<T>(dr, columnDefs[0].ColumnName);
-                return column == null ? default(T) : (T)column;
+                return column == null ? default(T) : ConvertValueType<T>(column);
             }
-            else
+
+            var t = typeof(T); //TODO: Move this into parameter that gets passed in; for better speed?
+            var newObject = (T)FormatterServices.GetUninitializedObject(typeof(T));
+
+            for (var i = 0; i <= columnDefs.Count - 1; i++)
             {
-                var t = typeof(T);
-                var newObject = (T)FormatterServices.GetUninitializedObject(typeof(T));
-
-                for (var i = 0; i <= columnDefs.Count - 1; i++)
-                {
-                    t.InvokeMember(columnDefs[i].ColumnName,
-                                   BindingFlags.SetProperty, null,
-                                   newObject,
-                                   new[] { InitialiseObject<T>(dr, columnDefs[i].ColumnName) }
-                        );
-                }
-
-                return newObject;
+                t.InvokeMember(columnDefs[i].ColumnName,
+                               BindingFlags.SetProperty, null,
+                               newObject,
+                               new[] { InitialiseObject<T>(dr, columnDefs[i].ColumnName) });
             }
 
+            return newObject;
+        }
+
+        private static T ConvertValueType<T>(object value)
+        {
+            if (typeof(T) == typeof(string))
+                return (T)(object)value.ToString();
+
+            return (T) value;
         }
 
         private static object InitialiseObject<T>(DataRow dr, String columnName)
@@ -159,18 +158,39 @@ namespace TinyORM.Mapping
 
         private static object ProcessSqlValue<T>(object value)
         {
-            if (value is DBNull)
+            if (value is DBNull || value == null)
                 return null;
 
-            if (typeof(T) == typeof(bool))
-            {
-                //TODO: Refactor
-                if (value is int || value is float || value is double)
-                    return ProcessIntAsBool(value);
+            //Dont bother converting if we are already ok :)
+            if(typeof(T) == value.GetType())
+                return value;
 
-                if (value is string)
-                    return ProcessStringAsBool(value);
-            }
+            if (typeof(T) == typeof(bool))
+                return ProcessBool(value);
+
+            if (typeof(T) == typeof(int))
+                return ProcessInt(value);
+
+            if (typeof(T) == typeof(long))
+                return ProcessLong(value);
+
+            if (typeof(T) == typeof(double))
+                return ProcessDouble(value);
+
+            if (typeof(T) == typeof(float))
+                return ProcessFloat(value);
+
+            return value;
+        }
+
+        #region BoolProcessing
+        private static object ProcessBool(object value)
+        {
+            if (value is int || value is float || value is double)
+                return ProcessIntAsBool(value);
+
+            if (value is string)
+                return ProcessStringAsBool(value);
 
             return value;
         }
@@ -190,6 +210,30 @@ namespace TinyORM.Mapping
         {
             return (int)value == 1;
         }
+        #endregion
+
+        #region NumberProcessing
+
+        private static object ProcessInt(object value)
+        {
+            return int.Parse(value.ToString());
+        }
+
+        private static object ProcessLong(object value)
+        {
+            return long.Parse(value.ToString());
+        }
+
+        private static object ProcessDouble(object value)
+        {
+            return double.Parse(value.ToString());
+        }
+
+        private static object ProcessFloat(object value)
+        {
+            return float.Parse(value.ToString());
+        }
+        #endregion
         #endregion
     }
 }

@@ -54,7 +54,9 @@
     <Compile Include="Maintenance\DbListServers.cs" />
     <Compile Include="Maintenance\DbMaintenance.cs" />
     <Compile Include="DbResultInfo.cs" />
-    <Compile Include="Utils\DBUtils.cs" />
+    <Compile Include="Mapping\IMapper.cs" />
+    <Compile Include="Mapping\TinyMapper.cs" />
+    <Compile Include="Utils\DbUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
