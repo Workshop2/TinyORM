@@ -56,6 +56,20 @@ namespace TinyORM.Tests.Mapping
             public float PropertyFloat { get; set; }
         }
 
+        /// <summary>
+        /// A class with funny un-matching names (in upper or lowercase)
+        /// This tests the matching engine
+        /// </summary>
+        public class DummyClassWrong
+        {
+            public int propertyint { get; set; }
+            public bool PROPERTYBool { get; set; }
+            public long PropertyLONG { get; set; }
+            public string PROPERTYSTRING { get; set; }
+            public double propertyDouble { get; set; }
+            public float ProPertyFloaT { get; set; }
+        }
+
         public static List<DummyClass> GenerateExpectedDummyObject(int rows)
         {
             var rtnVal = new List<DummyClass>();
@@ -65,11 +79,33 @@ namespace TinyORM.Tests.Mapping
                 var row = new DummyClass
                 {
                     PropertyInt = i,
-                    PropertyBool = (i%2) == 1,
+                    PropertyBool = (i % 2) == 1,
                     PropertyLong = i,
                     PropertyString = i.ToString(CultureInfo.InvariantCulture),
                     PropertyFloat = i + 0.01F,
                     PropertyDouble = i + 0.01D
+                };
+
+                rtnVal.Add(row);
+            }
+
+            return rtnVal;
+        }
+
+        public static List<DummyClassWrong> GenerateExpectedWrongDummyObject(int rows)
+        {
+            var rtnVal = new List<DummyClassWrong>();
+
+            for (var i = 1; i < rows + 1; i++)
+            {
+                var row = new DummyClassWrong
+                {
+                    propertyint = i,
+                    PROPERTYBool = (i % 2) == 1,
+                    PropertyLONG = i,
+                    PROPERTYSTRING = i.ToString(CultureInfo.InvariantCulture),
+                    ProPertyFloaT = i + 0.01F,
+                    propertyDouble = i + 0.01D
                 };
 
                 rtnVal.Add(row);

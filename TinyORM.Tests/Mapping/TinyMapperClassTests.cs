@@ -80,18 +80,47 @@ namespace TinyORM.Tests.Mapping
                 RunTest(10000);
             }
 
-            ////Stress tests
-            //[Test]
-            //public void then_one_hundred_thousand_should_map_correctly()
-            //{
-            //    RunTest(100000);
-            //}
+            //Stress tests
+            [Test]
+            public void then_one_hundred_thousand_should_map_correctly()
+            {
+                RunTest(100000);
+            }
 
             //[Test]
             //public void then_one_million_should_map_correctly()
             //{
             //    RunTest(1000000);
             //}
+        }
+
+        [TestFixture]
+        public class when_mapping_lists_of_wrong_classes : SpecsFor<TinyMapper>
+        {
+            private void RunTest(int numberToTest)
+            {
+                var timeStamp = DateTime.Now;
+                var expected = Common.GenerateExpectedWrongDummyObject(numberToTest);
+                Common.PrintTime(timeStamp, DateTime.Now);
+
+                timeStamp = DateTime.Now;
+                var data = Common.GenerateDataSet(1, numberToTest);
+                Common.PrintTime(timeStamp, DateTime.Now);
+
+                timeStamp = DateTime.Now;
+                var mapped = SUT.Map<List<Common.DummyClassWrong>>(data);
+                Common.PrintTime(timeStamp, DateTime.Now);
+
+                timeStamp = DateTime.Now;
+                mapped.ShouldLookLike(expected);
+                Common.PrintTime(timeStamp, DateTime.Now);
+            }
+
+            [Test]
+            public void then_ten_should_map_correctly()
+            {
+                RunTest(10);
+            }
         }
     }
 }

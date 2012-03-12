@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using TinyORM.Utils;
@@ -47,7 +48,7 @@ namespace TinyORM.Mapping
             if (dbValue.GetType() == typeof(DataTable))
             {
                 var dt = (DataTable)dbValue;
-                return dt.Rows.Count > 0 ? ConvertDataRowToObject<T>(dt.Columns, dt.Rows[0], typeof(T)) : default(T);
+                return dt.Rows.Count > 0 ? ConvertDataRowToObject<T>(GenerateColumnNames(dt, typeof(T)), dt.Rows[0], typeof(T)) : default(T);
             }
 
             //If we are here, then we have a single object trying to be converted into another object.
@@ -93,18 +94,62 @@ namespace TinyORM.Mapping
 
             var objType = typeof(T).GetGenericArguments()[0];
             var generatedList = (IList)Activator.CreateInstance((typeof(List<>).MakeGenericType(objType)));
-            var convertDataRowToObjectHandler = GetType().GetMethod("ConvertDataRowToObject", BindingFlags.NonPublic | BindingFlags.Instance);
-            var convertDataRowToObjectMethod = convertDataRowToObjectHandler.MakeGenericMethod(new[] { objType });
+            var convertDataRowToObjectMethod = GenerateDataRowToObjectHandler<T>(objType);
+
+            var objectColumns = GenerateColumnNames(dt, objType);
 
             if (dt.Rows.Count > 0 && dt.Columns.Count > 0)
             {
                 for (var i = 0; i < dt.Rows.Count; i++)
-                    generatedList.Add(convertDataRowToObjectMethod.Invoke(this, new object[] { dt.Columns, dt.Rows[i], objType }));
+                    generatedList.Add(convertDataRowToObjectMethod.Invoke(this, new object[] { objectColumns, dt.Rows[i], objType }));
             }
 
             return (T)generatedList;
         }
 
+        private MethodInfo GenerateDataRowToObjectHandler<T>(Type objType)
+        {
+            var convertDataRowToObjectHandler = GetType().GetMethod("ConvertDataRowToObject", BindingFlags.NonPublic | BindingFlags.Instance);
+            return convertDataRowToObjectHandler.MakeGenericMethod(new[] { objType });
+        }
+
+        /// <summary>
+        /// Works out the correct property name for the current object. If no name is found, an exception is raised
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="objType"></param>
+        /// <returns></returns>
+        private Dictionary<string, string> GenerateColumnNames(DataTable dt, Type objType)
+        {
+            var objectColumns = new Dictionary<string, string>();
+
+            //If it is a value type, then just return standard column headers
+            if (DbUtils.IsValueType(objType))
+            {
+                foreach (DataColumn column in dt.Columns)
+                    objectColumns.Add(column.ColumnName, column.ColumnName);
+
+                return objectColumns;
+            }
+
+            var columns = objType.GetProperties().Where(x => x.CanWrite).Select(x => x.Name).ToArray();
+
+            foreach (DataColumn column in dt.Columns)
+            {
+                var columnName = column.ColumnName;
+                var name = columns.FirstOrDefault(x => x == columnName);
+
+                if (string.IsNullOrEmpty(name))
+                    name = columns.FirstOrDefault(x => x.ToUpper() == columnName.ToUpper());
+
+                if (string.IsNullOrEmpty(name) == false)
+                    objectColumns.Add(columnName, name);
+                else
+                    throw new Exception(string.Format("Unable to find property '{0}' in class type '{1}'", columnName, objType.Name));
+            }
+
+            return objectColumns;
+        }
 
         #endregion
 
@@ -118,25 +163,26 @@ namespace TinyORM.Mapping
         #endregion
 
         #region MiscFunctions
-        private T ConvertDataRowToObject<T>(DataColumnCollection columnDefs, DataRow dr, Type type)
+        private T ConvertDataRowToObject<T>(ICollection<KeyValuePair<string, string>> propertyNames, DataRow dr, Type type)
         {
-            if (columnDefs.Count < 1 || dr == null)
+            if (propertyNames.Count < 1 || dr == null)
                 throw new Exception("Not enough information to process");
 
             if (DbUtils.IsValueType<T>())
             {
-                var column = ProcessSqlValue<T>(dr[columnDefs[0].ColumnName]);
+                var column = ProcessSqlValue<T>(dr[propertyNames.First().Key]);
                 return column == null ? default(T) : ConvertValueType<T>(column);
             }
 
             var newObject = (T)FormatterServices.GetUninitializedObject(typeof(T));
 
-            for (var i = 0; i <= columnDefs.Count - 1; i++)
+            foreach (var columns in propertyNames)
             {
-                type.InvokeMember(columnDefs[i].ColumnName,
-                               BindingFlags.SetProperty, null,
-                               newObject,
-                               new[] { ProcessSqlValue<T>(dr[columnDefs[i].ColumnName]) });
+                //TODO: Replace this with Property.SetValue and see if there is any difference in performance
+                type.InvokeMember(columns.Value,
+                                      BindingFlags.SetProperty, null,
+                                      newObject,
+                                      new[] { ProcessSqlValue<T>(dr[columns.Key]) });
             }
 
             return newObject;
