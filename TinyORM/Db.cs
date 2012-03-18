@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using Microsoft.ApplicationBlocks.Data;
+using TinyORM.Connection;
 using TinyORM.Exceptions;
 using TinyORM.Mapping;
-using TinyORM.Utils;
 
 namespace TinyORM
 {
     public class Db : IDisposable
     {
         private DbConnectionInfo DbInfo { get; set; }
-        public SqlConnection DbConnection { get; private set; }
+        public ITinyConnection DbConnection { get; private set; }
         public TimeSpan CommandTimeout { get; set; }
         public IMapper Mapper { get; set; }
 
@@ -94,12 +93,7 @@ namespace TinyORM
         {
             try
             {
-                if (parameters == null)
-                    parameters = new List<SqlParameter>();
-
-                return transaction == null ?
-                    SqlHelper.ExecuteScalar(DbConnection, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds) :
-                    SqlHelper.ExecuteScalar(transaction, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+                return DbConnection.ExecuteScalar(transaction, commandText, parameters, CommandTimeout);
             }
             catch (Exception e)
             {

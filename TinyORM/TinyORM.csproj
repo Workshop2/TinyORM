@@ -57,20 +57,22 @@
     <Compile Include="DbResultInfo.cs" />
     <Compile Include="Mapping\IMapper.cs" />
     <Compile Include="Mapping\TinyMapper.cs" />
+    <Compile Include="Connection\ITinyConnection.cs" />
+    <Compile Include="Connection\TinySqlConnection.cs" />
     <Compile Include="Utils\DbUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLScripts\KillAllProcesses.sql" />
+    <EmbeddedResource Include="SqlScripts\KillAllProcesses.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLScripts\DefaultBackupLocation.sql" />
+    <EmbeddedResource Include="SqlScripts\DefaultBackupLocation.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLScripts\DoesFileExist.sql" />
+    <EmbeddedResource Include="SqlScripts\DoesFileExist.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLScripts\CreateDatabase.sql" />
+    <EmbeddedResource Include="SqlScripts\CreateDatabase.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README">

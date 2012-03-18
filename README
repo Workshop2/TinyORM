@@ -19,6 +19,5 @@ TODO:
 	- Saving Framework (TinyObject abstract?)
 		- Attributes
 		- Save directly to tables or SP's
-	- Move exceptions into TinyException namespace
 	- Maybe rename to the "TinyFramework"
 	- TinyMapper: Option to ignore missing columns/properties?

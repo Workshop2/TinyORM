@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Text;
+using TinyORM.Connection;
 
 namespace TinyORM
 {
@@ -49,9 +50,12 @@ namespace TinyORM
 
         #region Methods
 
-        public SqlConnection GetConnection()
+        public ITinyConnection GetConnection()
         {
-            return new SqlConnection(GenerateConnectionString());
+            var newConnection = new TinySqlConnection();
+            newConnection.Initialize(new SqlConnection(GenerateConnectionString()));
+
+            return newConnection;
         }
 
         public bool HasEnoughInformation()
@@ -78,7 +82,7 @@ namespace TinyORM
 
             try
             {
-                using (SqlConnection connection = GetConnection())
+                using (var connection = GetConnection())
                     connection.Open();
             }
             catch (Exception e)
