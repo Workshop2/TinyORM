@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Db\DbExecuteTests.cs" />
     <Compile Include="Mapping\Common.cs" />
     <Compile Include="Mapping\TinyMapperClassTests.cs" />
     <Compile Include="Mapping\TinyMapperValueTests.cs" />

@@ -48,10 +48,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectionSetup\IConnectionSetup.cs" />
+    <Compile Include="ConnectionSetup\SqlDbConnectionSetup.cs" />
     <Compile Include="Db.cs" />
     <Compile Include="Exceptions\Exceptions.cs" />
     <Compile Include="Maintenance\DbTempChange.cs" />
-    <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="Maintenance\DbListServers.cs" />
     <Compile Include="Maintenance\DbMaintenance.cs" />
     <Compile Include="DbResultInfo.cs" />

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using TinyORM.Connection;
+using TinyORM.ConnectionSetup;
 using TinyORM.Exceptions;
 using TinyORM.Mapping;
 
@@ -10,21 +11,21 @@ namespace TinyORM
 {
     public class Db : IDisposable
     {
-        private DbConnectionInfo DbInfo { get; set; }
+        private IConnectionSetup ConnectionSetup { get; set; }
         public ITinyConnection DbConnection { get; private set; }
         public TimeSpan CommandTimeout { get; set; }
         public IMapper Mapper { get; set; }
 
         #region Constructors
 
-        public Db(DbConnectionInfo dbInfo)
+        public Db(IConnectionSetup connectionSetup)
         {
-            DbInfo = dbInfo;
-            CommandTimeout = DbInfo.ConnectionTimemout;
+            ConnectionSetup = connectionSetup;
+            CommandTimeout = ConnectionSetup.ConnectionTimemout;
 
-            if (DbInfo != null && DbInfo.HasEnoughInformation())
+            if (ConnectionSetup != null && ConnectionSetup.HasEnoughInformation())
             {
-                DbConnection = DbInfo.GetConnection();
+                DbConnection = ConnectionSetup.GetConnection();
                 var connectionRes = CheckConnection(true);
 
                 if (!connectionRes.Success)
@@ -214,9 +215,7 @@ namespace TinyORM
         {
             try
             {
-                DbConnection.Close();
                 DbConnection.Dispose();
-                DbConnection = null;
             }
             catch { }
         }
