@@ -7,9 +7,14 @@ using System.Text;
 
 namespace TinyORM.Maintenance
 {
+    /// <summary>
+    /// This class should be able to return a list of sql servers on the local network. Works 90% of the time - maybe work on finding a different way (without using SMO objects)   
+    /// Found at http://www.codeproject.com/Articles/12336/Locate-SQL-Server-instances-on-the-local-network
+    /// Work by James Curran
+    /// </summary>
     public class DbListServers
     {
-       public DbResultInfoRtn<SqlServerInfo[]> GetServers()
+        public DbResultInfoRtn<SqlServerInfo[]> GetServers()
         {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
@@ -23,7 +28,7 @@ namespace TinyORM.Maintenance
             var servers = new ArrayList();
             try
             {
-                var msg = new byte[] {0x02};
+                var msg = new byte[] { 0x02 };
                 var ep = new IPEndPoint(IPAddress.Broadcast, 1434);
                 socket.SendTo(msg, ep);
 
@@ -69,12 +74,12 @@ namespace TinyORM.Maintenance
             {
                 var tmpRtn = new List<string>();
 
-                for (int i = 0; i < tmpSvrs.Value.Length; i++)
+                foreach (var t in tmpSvrs.Value)
                 {
-                    string nameOfServer = tmpSvrs.Value[i].ServerName;
+                    var nameOfServer = t.ServerName;
 
-                    if (HasInstanceName(tmpSvrs.Value[i].InstanceName))
-                        nameOfServer += "\\" + tmpSvrs.Value[i].InstanceName;
+                    if (HasInstanceName(t.InstanceName))
+                        nameOfServer += "\\" + t.InstanceName;
 
                     tmpRtn.Add(nameOfServer);
                 }

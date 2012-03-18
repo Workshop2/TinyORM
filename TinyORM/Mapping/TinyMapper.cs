@@ -6,11 +6,21 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using TinyORM.Utils;
+using TinyORM.Exceptions;
 
 namespace TinyORM.Mapping
 {
+    /// <summary>
+    /// The default mapper for TinyORM. Maps db values to valid return values. 
+    /// </summary>
     public class TinyMapper : IMapper
     {
+        /// <summary>
+        /// Can throw TinyMapperException
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dbValue"></param>
+        /// <returns></returns>
         public T Map<T>(object dbValue)
         {
             T rtnVal;
@@ -52,7 +62,7 @@ namespace TinyORM.Mapping
             }
 
             //If we are here, then we have a single object trying to be converted into another object.
-            //All we can do is try and cast it... TODO: Find a better way?
+            //All we can do is try and cast it... TODO: Find a better way? Will we ever get here? Maybe worth just throwing an error?
             return (T)dbValue;
         }
 
@@ -145,7 +155,7 @@ namespace TinyORM.Mapping
                 if (string.IsNullOrEmpty(name) == false)
                     objectColumns.Add(columnName, name);
                 else
-                    throw new Exception(string.Format("Unable to find property '{0}' in class type '{1}'", columnName, objType.Name));
+                    throw new TinyMapperException(string.Format("Unable to find property '{0}' in class type '{1}'", columnName, objType.Name));
             }
 
             return objectColumns;
@@ -163,10 +173,19 @@ namespace TinyORM.Mapping
         #endregion
 
         #region MiscFunctions
+        /// <summary>
+        /// This function converts a datarow to an object by mapping column headers to properties
+        /// This function can't be static (ignore resharpers suggestion)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="propertyNames"></param>
+        /// <param name="dr"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private T ConvertDataRowToObject<T>(ICollection<KeyValuePair<string, string>> propertyNames, DataRow dr, Type type)
         {
             if (propertyNames.Count < 1 || dr == null)
-                throw new Exception("Not enough information to process");
+                throw new TinyMapperException("Not enough information to process");
 
             if (DbUtils.IsValueType<T>())
             {

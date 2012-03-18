@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Microsoft.ApplicationBlocks.Data;
+using TinyORM.Exceptions;
 using TinyORM.Mapping;
 using TinyORM.Utils;
 
@@ -31,19 +32,17 @@ namespace TinyORM
                     throw connectionRes.AsException;
 
                 //Setup the default mapper
-                if(Mapper == null)
+                if (Mapper == null)
                     Mapper = new TinyMapper();
             }
         }
 
         #endregion
 
-        #region SqlAccess
+        #region ProcessRequest
 
-        private DbResultInfoRtn<T> ExecuteScalar<T>(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
+        private DbResultInfoRtn<T> ProcessRequest<T>(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
-            object rtnObj;
-            var errorMsg = string.Empty;
             DbResultInfoRtn<T> rtnResult;
 
             if (DbConnection == null)
@@ -53,49 +52,63 @@ namespace TinyORM
             if (Mapper == null)
                 return new DbResultInfoRtn<T>("Mapper is not defined", null);
 
-            var connectionRes = CheckConnection();
-            if (!connectionRes.Success)
-                throw connectionRes.AsException;
-
             try
             {
+                var connectionRes = CheckConnection();
+                if (!connectionRes.Success)
+                    throw connectionRes.AsException;
+
                 //Execute the SQL
-                rtnObj = ExecuteSql(commandText, parameters, transaction);
-            }
-            catch (SqlException ex)
-            {
-                errorMsg = ex.Message;
-                rtnObj = null;
-            }
+                var rtnObj = ExecuteSql(commandText, parameters, transaction);
 
-            //Seperate catches as the casting in the next part may fail, but we want to return the error back in a DbResultInfoRtn
-            try
-            {
-                rtnObj = Mapper.Map<T>(rtnObj);
-                rtnResult = new DbResultInfoRtn<T>(errorMsg, rtnObj);
+                //Map the db result to the correct type of object
+                rtnResult = MapResult<T>(rtnObj);
             }
             catch (Exception e)
             {
-                rtnResult = string.IsNullOrEmpty(errorMsg) ? 
-                                    new DbResultInfoRtn<T>(e.Message, null) : 
-                                    new DbResultInfoRtn<T>(errorMsg, e.Message, null);
+                rtnResult = new DbResultInfoRtn<T>(e.Message, e, null);
             }
 
             return rtnResult;
         }
 
+        #endregion
+
+        #region DbConnectionAndMapping
+
+        private DbResultInfoRtn<T> MapResult<T>(object rtnObj)
+        {
+            try
+            {
+                rtnObj = Mapper.Map<T>(rtnObj);
+                return new DbResultInfoRtn<T>(string.Empty, rtnObj);
+            }
+            catch (Exception e)
+            {
+                //Wrap with a nice error
+                throw new TinyMapperException("An error occured while mapping the db value to an object", e);
+            }
+        }
+
         private object ExecuteSql(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
-            if (parameters == null)
-                parameters = new List<SqlParameter>();
+            try
+            {
+                if (parameters == null)
+                    parameters = new List<SqlParameter>();
 
-            return transaction == null ? 
-                SqlHelper.ExecuteScalar(DbConnection, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds) : 
-                SqlHelper.ExecuteScalar(transaction, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+                return transaction == null ?
+                    SqlHelper.ExecuteScalar(DbConnection, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds) :
+                    SqlHelper.ExecuteScalar(transaction, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)CommandTimeout.TotalSeconds);
+            }
+            catch (Exception e)
+            {
+                //Wrap with a nice error
+                throw new TinyDbException("An error occured while executing SQL", e);
+            }
         }
 
         #endregion
-
 
         #region ExecuteNoReturn
 
@@ -116,8 +129,9 @@ namespace TinyORM
 
         public DbResultInfo Execute(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
-            DbResultInfoRtn<object> rtnVal = ExecuteScalar<object>(commandText, parameters, transaction);
+            var rtnVal = ProcessRequest<object>(commandText, parameters, transaction);
 
+            //Convert the response into a return value that only conatins the response message
             return new DbResultInfo(rtnVal.ErrorMessage);
         }
 
@@ -142,7 +156,7 @@ namespace TinyORM
 
         public DbResultInfoRtn<T> Execute<T>(string commandText, List<SqlParameter> parameters, SqlTransaction transaction)
         {
-            return ExecuteScalar<T>(commandText, parameters, transaction);
+            return ProcessRequest<T>(commandText, parameters, transaction);
         }
 
         #endregion
@@ -185,7 +199,7 @@ namespace TinyORM
 
                     //This will cause the Db to execute Sql and test the connection
                     ExecuteSql("SELECT Db_NAME() AS DataBaseName", null, null);
-                    
+
                     errorMsg = string.Empty;
                     break;
                 }
@@ -210,7 +224,7 @@ namespace TinyORM
                 DbConnection.Dispose();
                 DbConnection = null;
             }
-            catch{}
+            catch { }
         }
 
         #endregion

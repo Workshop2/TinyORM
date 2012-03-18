@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Db.cs" />
+    <Compile Include="Exceptions\Exceptions.cs" />
     <Compile Include="Maintenance\DbTempChange.cs" />
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="Maintenance\DbListServers.cs" />
@@ -71,7 +72,9 @@
   <ItemGroup>
     <EmbeddedResource Include="SQLScripts\CreateDatabase.sql" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="README" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -74,7 +74,7 @@ namespace TinyORM
         public DbResultInfo TestConnection()
         {
             var errorMsg = string.Empty;
-            var innerErrorMsg = string.Empty;
+            Exception innerErrorMsg = null;
 
             try
             {
@@ -86,7 +86,7 @@ namespace TinyORM
                 errorMsg = e.Message;
 
                 if (e.InnerException != null)
-                    innerErrorMsg = e.InnerException.Message;
+                    innerErrorMsg = e;
             }
 
             return new DbResultInfo(errorMsg, innerErrorMsg);

@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace TinyORM.Maintenance
 {
+    /// <summary>
+    /// A number of usefull tasks that can be performed on a database.
+    /// </summary>
     public class DbMaintenance
     {
         private Db DbConnection { get; set; }
@@ -36,7 +39,7 @@ namespace TinyORM.Maintenance
 
         public DbResultInfo BackupDatabase(string database, string backupLocation)
         {
-            var killResult = KillAllProcesses(database);
+            DbResultInfo killResult = KillAllProcesses(database);
             if (!killResult.Success)
                 return killResult;
 
@@ -44,11 +47,12 @@ namespace TinyORM.Maintenance
             using (new DbTempChange(DbConnection))
             {
                 var paramList = new List<SqlParameter>
-                {
-                    new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database},
-                    new SqlParameter("@BackupLocation", SqlDbType.NVarChar) {Value = backupLocation},
-                    new SqlParameter("@BackupDescription", SqlDbType.NVarChar) {Value = "Full Backup of " + database}
-                };
+                                    {
+                                        new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database},
+                                        new SqlParameter("@BackupLocation", SqlDbType.NVarChar) {Value = backupLocation},
+                                        new SqlParameter("@BackupDescription", SqlDbType.NVarChar)
+                                            {Value = "Full Backup of " + database}
+                                    };
 
                 return DbConnection.Execute(BackupDbsql, paramList);
             }
@@ -56,7 +60,7 @@ namespace TinyORM.Maintenance
 
         public DbResultInfo RestoreDatabase(string database, string backupLocation)
         {
-            var killResult = KillAllProcesses(database);
+            DbResultInfo killResult = KillAllProcesses(database);
             if (!killResult.Success)
                 return killResult;
 
@@ -64,10 +68,10 @@ namespace TinyORM.Maintenance
             using (new DbTempChange(DbConnection))
             {
                 var paramList = new List<SqlParameter>
-                {
-                    new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database},
-                    new SqlParameter("@BackupLocation", SqlDbType.NVarChar) {Value = backupLocation}
-                };
+                                    {
+                                        new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database},
+                                        new SqlParameter("@BackupLocation", SqlDbType.NVarChar) {Value = backupLocation}
+                                    };
 
                 return DbConnection.Execute(RestoreDbsql, paramList);
             }
@@ -86,12 +90,12 @@ namespace TinyORM.Maintenance
                 try
                 {
                     //We store the SQl script in memory, this makes it easier to use and store
-                    var sqlToRun = GetResourceFile("KillAllProcesses.sql");
+                    string sqlToRun = GetResourceFile("KillAllProcesses.sql");
 
                     var paramList = new List<SqlParameter>
-                    {
-                        new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database}
-                    };
+                                        {
+                                            new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database}
+                                        };
 
                     return DbConnection.Execute(sqlToRun, paramList);
                 }
@@ -132,9 +136,9 @@ namespace TinyORM.Maintenance
                 string sqlToRun = GetResourceFile("CreateDatabase.sql");
 
                 var paramList = new List<SqlParameter>
-                {
-                    new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database}
-                };
+                                    {
+                                        new SqlParameter("@DBName", SqlDbType.NVarChar) {Value = database}
+                                    };
 
                 return DbConnection.Execute(sqlToRun, paramList);
             }
@@ -151,9 +155,9 @@ namespace TinyORM.Maintenance
                     string sqlToRun = GetResourceFile("DoesFileExist.sql");
 
                     var paramList = new List<SqlParameter>
-                    {
-                        new SqlParameter("@FileName", SqlDbType.NVarChar) {Value = fileName}
-                    };
+                                        {
+                                            new SqlParameter("@FileName", SqlDbType.NVarChar) {Value = fileName}
+                                        };
 
                     return DbConnection.Execute<bool>(sqlToRun, paramList);
                 }
@@ -170,9 +174,10 @@ namespace TinyORM.Maintenance
             using (new DbTempChange(DbConnection))
             {
                 var paramList = new List<SqlParameter>
-                {
-                    new SqlParameter("@DBBackupLocation", SqlDbType.NVarChar) {Value = backupLocation}
-                };
+                                    {
+                                        new SqlParameter("@DBBackupLocation", SqlDbType.NVarChar)
+                                            {Value = backupLocation}
+                                    };
 
                 return DbConnection.Execute(VerifyDbsql, paramList);
             }
@@ -190,8 +195,8 @@ namespace TinyORM.Maintenance
         private static string GetResourceFile(string filename)
         {
             //We store the SQl script in memory, this makes it easier to use and store
-            var assembly = Assembly.GetExecutingAssembly();
-            var foundStream = assembly.GetManifestResourceStream("eSightCSdb.SQLScripts." + filename);
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Stream foundStream = assembly.GetManifestResourceStream("eSightCSdb.SQLScripts." + filename);
 
             if (foundStream == null)
             {

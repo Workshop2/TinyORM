@@ -5,7 +5,7 @@ namespace TinyORM.Maintenance
 {
     /// <summary>
     /// This class will change the current DB in-use, and then when the class is disposed it will restore it to the
-    /// original DB
+    /// original DB settings
     /// SC
     /// </summary>
     public class DbTempChange
