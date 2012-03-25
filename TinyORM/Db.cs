@@ -11,14 +11,15 @@ namespace TinyORM
 {
     public class Db : IDisposable
     {
+        public string SqlConnectionTestScript = "SELECT Db_NAME() AS DataBaseName";
         private IConnectionSetup ConnectionSetup { get; set; }
-        public ITinyConnection DbConnection { get; private set; }
+        public ITinyConnection DbConnection { get; set; }
         public TimeSpan CommandTimeout { get; set; }
         public IMapper Mapper { get; set; }
 
         #region Constructors
 
-        public Db(IConnectionSetup connectionSetup)
+        public void Initlialise(IConnectionSetup connectionSetup)
         {
             ConnectionSetup = connectionSetup;
             CommandTimeout = ConnectionSetup.ConnectionTimemout;
@@ -193,7 +194,7 @@ namespace TinyORM
                         DbConnection.Open();
 
                     //This will cause the Db to execute Sql and test the connection
-                    ExecuteSql("SELECT Db_NAME() AS DataBaseName", null, null);
+                    ExecuteSql(SqlConnectionTestScript, null, null);
 
                     errorMsg = string.Empty;
                     break;
@@ -215,7 +216,8 @@ namespace TinyORM
         {
             try
             {
-                DbConnection.Dispose();
+                if (DbConnection != null)
+                    DbConnection.Dispose();
             }
             catch { }
         }
