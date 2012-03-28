@@ -179,6 +179,7 @@ namespace TinyORM
         public DbResultInfo CheckConnection(bool isStartup)
         {
             var errorMsg = string.Empty;
+            Exception excptn = null;
 
             //Attempt to connect twice (if the connection is severed, try connecting once more)
             for (var i = 0; i < 2; i++)
@@ -202,10 +203,11 @@ namespace TinyORM
                 catch (SqlException e)
                 {
                     errorMsg = e.Message;
+                    excptn = e;
                 }
             }
 
-            return new DbResultInfo(errorMsg);
+            return new DbResultInfo(errorMsg, excptn);
         }
 
         #endregion

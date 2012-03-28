@@ -46,7 +46,8 @@ namespace TinyORM.Connection
             {
                 return DbConnection != null ? DbConnection.ConnectionString : null;
             }
-            set {
+            set
+            {
                 if (DbConnection != null)
                     DbConnection.ConnectionString = value;
             }
@@ -69,9 +70,15 @@ namespace TinyORM.Connection
                 parameters = new List<SqlParameter>();
 
             if (DbConnection != null)
-                return transaction == null ? //TODO: SqlCommandOrUsp needs to be made more generic
-                           SqlHelper.ExecuteScalar(DbConnection, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)timeout.TotalSeconds) :
-                           SqlHelper.ExecuteScalar(transaction, DbUtils.SqlCommandOrUsp(commandText), commandText, parameters.ToArray(), (int)timeout.TotalSeconds);
+            {
+                var totalSeconds = (int) timeout.TotalSeconds;
+                var sqlType = DbUtils.SqlCommandOrUsp(commandText);
+
+                if (transaction == null) //TODO: SqlCommandOrUsp needs to be made more generic
+                    return SqlHelper.ExecuteDataset(DbConnection, sqlType, commandText, parameters.ToArray(), totalSeconds);
+                else
+                    return SqlHelper.ExecuteDataset(transaction, sqlType, commandText, parameters.ToArray(), totalSeconds);
+            }
 
             return null;
         }
@@ -88,7 +95,7 @@ namespace TinyORM.Connection
 
         public void ChangeDatabase(string dbName)
         {
-            if(DbConnection != null)
+            if (DbConnection != null)
                 DbConnection.ChangeDatabase(dbName);
         }
 

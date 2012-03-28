@@ -64,8 +64,8 @@ namespace TinyORM.ConnectionSetup
         {
             if (string.IsNullOrEmpty(Domain))
                 return false;
-            if (string.IsNullOrEmpty(Database))
-                return false;
+            //if (string.IsNullOrEmpty(Database)) //TODO: DO WE NEED THIS?
+            //    return false;
             if (!UseWindowsAuthentication)
             {
                 if (string.IsNullOrEmpty(Username))
