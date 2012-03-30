@@ -26,7 +26,7 @@ namespace TinyORM.Mapping
             T rtnVal;
 
             //Just return a blank object if we have nothing to work from
-            if (dbValue == null)
+            if (dbValue == null || typeof(T) == typeof(object))
                 rtnVal = default(T);
             //If the object is already converted, then use it
             else if (dbValue.GetType() == typeof(T))
