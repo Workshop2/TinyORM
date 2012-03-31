@@ -87,7 +87,7 @@ namespace TinyORM
             catch (Exception e)
             {
                 //Wrap with a nice error
-                throw new TinyMapperException("An error occured while mapping the db value to an object", e);
+                throw new TinyMapperException("An error occured while mapping the db value to an object: " + e.Message, e);
             }
         }
 
@@ -100,7 +100,7 @@ namespace TinyORM
             catch (Exception e)
             {
                 //Wrap with a nice error
-                throw new TinyDbException("An error occured while executing SQL", e);
+                throw new TinyDbException("An error occured while executing SQL: " + e.Message, e);
             }
         }
 
