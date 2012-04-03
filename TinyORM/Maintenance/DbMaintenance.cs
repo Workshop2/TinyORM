@@ -32,7 +32,7 @@ namespace TinyORM.Maintenance
             "RESTORE DATABASE @DBName FROM DISK = @BackupLocation WITH REPLACE, RECOVERY;";
 
         private const string ListAllDbsql =
-            "SELECT name FROM master..sysdatabases WHERE name NOT IN ('master', 'tempdb', 'model', 'msdb') ORDER BY name ASC;";
+            "SELECT name FROM sys.databases WHERE [database_id] > 6 AND [state_desc] = 'ONLINE' ORDER BY name ASC;";
 
         private const string VerifyDbsql = "RESTORE VERIFYONLY FROM DISK = @DBBackupLocation";
         private const string CurrentDbsql = "SELECT db_name()";
