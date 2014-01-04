@@ -1,17 +1,22 @@
 TinyORM
-By Simon Colmer / Workshop2
-http://x-volt.com
-https://github.com/Workshop2/TinyORM
-2012
+=======
+
+- By Simon Colmer / Workshop2
+- http://x-volt.com
+- https://github.com/Workshop2/TinyORM
+- 2012
 
 
 TinyORM is a small Object Relational Mapper (ORM) designed for MS SQL servers to convert tables into objects.
 
-Currently supports Datatable -> Raw data types
-							 -> Datatables & Datasets
-							 -> Custom Objects (Column names and types must match the object properties exactly)
-							 -> Lists of custom objects
-							 
+Currently supports
+===
+- Datatable
+    - Raw data types
+    - Datatables & Datasets
+	- Custom Objects (Column names and types must match the object properties exactly)
+	- Lists of custom objects
+
 More features to come
 
 TODO:
