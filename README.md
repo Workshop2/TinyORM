@@ -19,8 +19,8 @@ Currently supports
 
 More features to come
 
-TODO:
-	- Multiple generics with multiple tables within a dataset
+- TODO
+    - Multiple generics with multiple tables within a dataset
 	- Saving Framework (TinyObject abstract?)
 		- Attributes
 		- Save directly to tables or SP's
@@ -43,7 +43,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/Workshop2/tinyorm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
